@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luka 3D Tlač – Objednávky</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2e2e2e;
+      --accent: #ff6b2b;
+      --accent2: #ffb347;
+      --text: #f0ede8;
+      --muted: #888;
+      --radius: 10px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse, rgba(255,107,43,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--text);
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    .tagline {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    /* HERO BADGES */
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 18px;
+    }
+
+    .badge {
+      background: rgba(255,107,43,0.12);
+      border: 1px solid rgba(255,107,43,0.3);
+      color: var(--accent2);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      padding: 4px 12px;
+      border-radius: 100px;
+      letter-spacing: 1px;
+    }
+
+    /* MAIN */
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 32px 16px 60px;
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* FORM */
+    .fs-form {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    fieldset {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .fs-fieldset-title {
+      font-size: 0.75rem;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .fs-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .fs-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    .fs-input,
+    .fs-select,
+    .fs-textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      padding: 10px 14px;
+      width: 100%;
+      transition: border-color 0.2s;
+      outline: none;
+      appearance: none;
+    }
+
+    .fs-input:focus,
+    .fs-select:focus,
+    .fs-textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .fs-textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .fs-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    /* CHECKBOX */
+    .fs-checkbox-field {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .fs-checkbox-wrapper {
+      padding-top: 2px;
+    }
+
+    .fs-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .fs-checkbox-field .fs-label {
+      font-size: 0.85rem;
+      color: var(--text);
+      cursor: pointer;
+      line-height: 1.5;
+    }
+
+    /* SUBMIT */
+    .fs-button-group {
+      margin-top: 4px;
+    }
+
+    .fs-button {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 16px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .fs-button:hover {
+      background: #e55a1f;
+    }
+
+    .fs-button:active {
+      transform: scale(0.98);
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* KATALOG */
+    .catalog {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .product-card:hover {
+      border-color: var(--accent);
+    }
+
+    .product-img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      text-align: center;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .product-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-info {
+      padding: 12px;
+    }
+
+    .product-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .product-desc {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .product-price {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Luka <span>3D</span></div>
+    <div class="tagline">Tlač na mieru · Slovensko</div>
+    <div class="badges">
+      <span class="badge">PLA · TPU · PETG</span>
+      <span class="badge">Obaly na telefón</span>
+      <span class="badge">Tlač na tričká</span>
+      <span class="badge">Náhradné diely</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="section-title">Katalóg produktov</div>
+
+    <div class="catalog">
+
+      <div class="product-card">
+        <div class="product-img">📸 Sem vlož fotku</div>
+        <div class="product-info">
+          <div class="product-name">Obal na telefón</div>
+          <div class="product-desc">TPU alebo PLA, na mieru podľa tvojho modelu</div>
+          <div class="product-price">od X €</div>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div class="product-img">📸 Sem vlož fotku</div>
+        <div class="product-info">
+          <div class="product-name">Tlač na tričko</div>
+          <div class="product-desc">Vlastný dizajn vytlačený priamo na tričko</div>
+          <div class="product-price">od X €</div>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div class="product-img">📸 Sem vlož fotku</div>
+        <div class="product-info">
+          <div class="product-name">Náhradný diel</div>
+          <div class="product-desc">Úchytky, pánty, kryty – na mieru</div>
+          <div class="product-price">od X €</div>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div class="product-img">📸 Sem vlož fotku</div>
+        <div class="product-info">
+          <div class="product-name">Menovka na dvere</div>
+          <div class="product-desc">Personalizovaná s menom alebo číslom bytu</div>
+          <div class="product-price">od X €</div>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div class="product-img">📸 Sem vlož fotku</div>
+        <div class="product-info">
+          <div class="product-name">Dekorácia / darček</div>
+          <div class="product-desc">Stojany, figúrky, organizéry</div>
+          <div class="product-price">od X €</div>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div class="product-img">📸 Sem vlož fotku</div>
+        <div class="product-info">
+          <div class="product-name">Vlastný projekt</div>
+          <div class="product-desc">Máš nápad? Vytlačíme čokoľvek</div>
+          <div class="product-price">Cena dohodou</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section-title">Objednávkový formulár</div>
+
+    <form
+      action="https://formspree.io/f/mrevqljd"
+      class="fs-form"
+      target="_top"
+      method="POST"
+    >
+      <fieldset>
+        <legend class="fs-fieldset-title">Kontaktné údaje</legend>
+        <div class="fs-field">
+          <label class="fs-label" for="full-name">Celé meno</label>
+          <input class="fs-input" id="full-name" name="full-name" placeholder="Zadaj svoje meno" required />
+        </div>
+        <div class="fs-field">
+          <label class="fs-label" for="email-address">Email</label>
+          <input class="fs-input" id="email-address" name="email-address" type="email" placeholder="tvoj@email.sk" required />
+        </div>
+        <div class="fs-field">
+          <label class="fs-label" for="phone-number">Telefón</label>
+          <input class="fs-input" id="phone-number" name="phone-number" placeholder="+421 9XX XXX XXX" required />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="fs-fieldset-title">Adresa doručenia</legend>
+        <div class="fs-field">
+          <label class="fs-label" for="street-address">Ulica a číslo</label>
+          <input class="fs-input" id="street-address" name="street-address" placeholder="Ulica 123" required />
+        </div>
+        <div class="fs-field">
+          <label class="fs-label" for="city">Mesto</label>
+          <input class="fs-input" id="city" name="city" placeholder="Tvoje mesto" required />
+        </div>
+        <div class="fs-field">
+          <label class="fs-label" for="postal-zip-code">PSČ</label>
+          <input class="fs-input" id="postal-zip-code" name="postal-zip-code" placeholder="01001" required />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="fs-fieldset-title">Detail objednávky</legend>
+        <div class="fs-field">
+          <label class="fs-label" for="product-name">Produkt</label>
+          <select class="fs-select" id="product-name" name="product-name" required>
+            <option value="">-- Vyber produkt --</option>
+            <option value="obal-telefon">Obal na telefón (TPU/PLA)</option>
+            <option value="tricko">Tlač na tričko</option>
+            <option value="nahradny-diel">Náhradný diel / oprava</option>
+            <option value="dekoracia">Dekorácia / darček</option>
+            <option value="ine">Iné – popíšem nižšie</option>
+          </select>
+        </div>
+        <div class="fs-field">
+          <label class="fs-label" for="quantity">Množstvo</label>
+          <input class="fs-input" id="quantity" name="quantity" placeholder="1" type="number" min="1" required />
+        </div>
+        <div class="fs-field">
+          <label class="fs-label" for="additional-notes">Popis / požiadavky</label>
+          <textarea class="fs-textarea" id="additional-notes" name="additional-notes" placeholder="Napr. model telefónu, farba, rozmer, čo treba opraviť..."></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="fs-fieldset-title">Doručenie a platba</legend>
+        <div class="fs-field">
+          <label class="fs-label" for="delivery-method">Spôsob doručenia</label>
+          <select class="fs-select" id="delivery-method" name="delivery-method" required>
+            <option value="osobny-odber">Osobný odber</option>
+            <option value="slovenská-posta">Slovenská pošta</option>
+            <option value="packeta">Packeta / Z-BOX</option>
+          </select>
+        </div>
+        <div class="fs-field">
+          <label class="fs-label" for="payment-method">Platba</label>
+          <select class="fs-select" id="payment-method" name="payment-method" required>
+            <option value="hotovost">Hotovosť pri odovzdaní</option>
+            <option value="prevod">Bankový prevod</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <div class="fs-checkbox-field">
+        <div class="fs-checkbox-wrapper">
+          <input class="fs-checkbox" id="terms-agreement" name="terms-agreement" required type="checkbox" value="agree" />
+        </div>
+        <div>
+          <label class="fs-label" for="terms-agreement">Súhlasím so spracovaním údajov pre vybavenie objednávky</label>
+        </div>
+      </div>
+
+      <div class="fs-button-group">
+        <button class="fs-button" type="submit">Odoslať objednávku →</button>
+      </div>
+    </form>
+  </main>
+
+  <footer>
+    © 2025 Luka 3D Tlač · Slovensko
+  </footer>
+
+</body>
+</html>
