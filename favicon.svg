@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b2b"/>
+      <stop offset="100%" style="stop-color:#ffb347"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="64" height="64" rx="12" fill="#1a1a1a"/>
+
+  <!-- 3D Printer simplified -->
+  <!-- Top rail -->
+  <rect x="8" y="14" width="48" height="8" rx="3" fill="url(#g)"/>
+  <!-- Body -->
+  <rect x="10" y="22" width="44" height="24" rx="3" fill="none" stroke="url(#g)" stroke-width="2"/>
+  <!-- Print head -->
+  <rect x="24" y="18" width="16" height="10" rx="2" fill="#ff6b2b"/>
+  <!-- Nozzle -->
+  <rect x="30" y="28" width="4" height="6" rx="1" fill="#ffb347"/>
+  <!-- Dot (filament) -->
+  <circle cx="32" cy="36" r="2.5" fill="#ffb347" opacity="0.9"/>
+  <!-- Bed -->
+  <rect x="12" y="46" width="40" height="4" rx="2" fill="#2e2e2e" stroke="#555" stroke-width="1"/>
+
+  <!-- G3D text small -->
+  <text x="32" y="60" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="9" text-anchor="middle" letter-spacing="1">
+    <tspan fill="#f0ede8">G</tspan><tspan fill="url(#g)">3D</tspan>
+  </text>
+</svg>
