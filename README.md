@@ -21,7 +21,25 @@ favicon.svg, logo.svg, logo-1.svg
   uložený v `localStorage` (prežije obnovenie stránky).
 - **Pokladňa** (`pokladna.html`) – súhrn objednávky + kontaktný/dodací formulár.
   Po odoslaní sa objednávka pošle cez **Formspree** (rovnaký endpoint ako pôvodný
-  formulár) a zobrazí sa potvrdenie. Platba prebieha pri prevzatí.
+  formulár) a zobrazí sa potvrdenie.
+- **Doručenie**: Osobný odber (Rača, zdarma) alebo **Packeta Z‑BOX** (cez oficiálny
+  widget na výber výdajného miesta; pripočíta poplatok za dopravu).
+- **Platba**: Hotovosť pri prevzatí, Bankový prevod alebo **PayPal**
+  (PayPal Smart Buttons – platba priamo na stránke).
+
+## Konfigurácia platby a dopravy
+
+Na začiatku `<script>` v `pokladna.html` sú konštanty (verejné kľúče, vkladajú sa
+priamo do stránky):
+
+```js
+const PAYPAL_CLIENT_ID = "TODO_PAYPAL_CLIENT_ID"; // Live client-id z developer.paypal.com
+const PACKETA_API_KEY  = "TODO_PACKETA_API_KEY";  // API kľúč widgetu z Packeta klientskej zóny
+const PACKETA_SHIPPING = 2.99;                      // cena dopravy Z-BOX (€)
+```
+
+Kým nie sú kľúče vyplnené, PayPal aj Packeta sa zobrazia, ale slušne upozornia, že
+chýba konfigurácia. Po doplnení reálnych kľúčov fungujú naživo.
 
 ## Úprava cien a produktov
 
