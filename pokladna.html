@@ -78,7 +78,7 @@
             </div>
 
             <!-- Doručenie -->
-            <div class="fs-section">
+            <div class="fs-section" id="address-section">
               <div class="fs-section-header">
                 <div class="fs-section-icon">📦</div>
                 <div class="fs-section-title">Adresa doručenia</div>
@@ -112,7 +112,8 @@
                   <div class="fs-field">
                     <label class="fs-label" for="delivery-method">Spôsob doručenia <span>*</span></label>
                     <select class="fs-select" id="delivery-method" name="delivery-method" required>
-                      <option value="osobny-odber">Osobný odber (Rača)</option>
+                      <option value="osobny-odber">Osobný odber (Rača) – zdarma</option>
+                      <option value="packeta">Packeta Z-BOX</option>
                     </select>
                   </div>
                   <div class="fs-field">
@@ -120,8 +121,15 @@
                     <select class="fs-select" id="payment-method" name="payment-method" required>
                       <option value="hotovost">Hotovosť pri prevzatí</option>
                       <option value="prevod">Bankový prevod vopred</option>
+                      <option value="paypal">PayPal</option>
                     </select>
                   </div>
+                </div>
+                <div class="fs-field" id="packeta-block" style="display:none">
+                  <label class="fs-label">Výdajné miesto / Z-BOX <span>*</span></label>
+                  <button type="button" class="btn-ghost" id="packeta-pick-btn">📍 Vybrať Packeta Z-BOX</button>
+                  <div id="packeta-selected" class="summary-note" style="margin-top:8px;"></div>
+                  <input type="hidden" id="packeta-point" name="packeta-vydajne-miesto" />
                 </div>
                 <div class="fs-field">
                   <label class="fs-label" for="additional-notes">Poznámka k objednávke</label>
@@ -140,11 +148,14 @@
             <!-- vyplnené automaticky z košíka -->
             <input type="hidden" id="order-items" name="objednavka" />
             <input type="hidden" id="order-total" name="suma-spolu" />
+            <input type="hidden" id="shipping-fee" name="doprava-cena" />
+            <input type="hidden" id="paypal-order-id" name="paypal-transakcia" />
 
             <button class="submit-btn" type="submit" id="place-order-btn">
               Záväzne objednať
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
+            <div id="paypal-button-container" style="display:none; margin-top:4px;"></div>
           </form>
 
           <!-- ORDER SUMMARY -->
@@ -196,9 +207,27 @@
     </div>
   </aside>
 
+  <script src="https://widget.packeta.com/v6/www/js/library.js"></script>
   <script src="js/cart.js"></script>
   <script>
+    /* ── Konfigurácia (verejné kľúče – vlož svoje hodnoty) ──────── */
     const FORMSPREE_ENDPOINT = "https://formspree.io/f/meewglyb";
+    const PAYPAL_CLIENT_ID = "TODO_PAYPAL_CLIENT_ID";   // PayPal Live client-id z developer.paypal.com
+    const PACKETA_API_KEY = "TODO_PACKETA_API_KEY";     // API kľúč widgetu z Packeta klientskej zóny
+    const PACKETA_SHIPPING = 2.99;                        // príklad ceny dopravy Z-BOX (€)
+
+    const form = document.getElementById("checkout-form");
+    const deliverySel = document.getElementById("delivery-method");
+    const paymentSel = document.getElementById("payment-method");
+    const addressInputs = ["street-address", "city", "postal-zip-code"];
+
+    /* ── Ceny ──────────────────────────────────────────────────── */
+    function shippingFee() {
+      return deliverySel.value === "packeta" ? PACKETA_SHIPPING : 0;
+    }
+    function grandTotal() {
+      return cartTotal() + shippingFee();
+    }
 
     function renderSummary() {
       const host = document.getElementById("checkout-summary");
@@ -218,10 +247,16 @@
           </div>`;
         })
         .join("");
+      const ship = shippingFee();
+      const shipLine = `<div class="summary-line">
+            <div><div class="s-name">Doprava</div><div class="s-qty">${deliverySel.value === "packeta" ? "Packeta Z-BOX" : "Osobný odber (Rača)"}</div></div>
+            <div class="s-price">${ship > 0 ? formatEur(ship) : "zdarma"}</div>
+          </div>`;
       host.innerHTML =
         lines +
-        `<div class="summary-total"><span>Spolu</span><span>${formatEur(cartTotal())}</span></div>
-         <p class="summary-note">Doprava: osobný odber v Rači (zdarma). Ceny sú orientačné príklady — finálnu cenu potvrdíme do 24 h.</p>`;
+        shipLine +
+        `<div class="summary-total"><span>Spolu</span><span>${formatEur(grandTotal())}</span></div>
+         <p class="summary-note">Ceny sú orientačné príklady — finálnu cenu potvrdíme do 24 h.</p>`;
       return true;
     }
 
@@ -235,22 +270,90 @@
         .join("\n");
     }
 
-    renderSummary();
+    /* ── Prepínanie doručenia (Packeta Z-BOX) ──────────────────── */
+    function updateDeliveryUI() {
+      const isPacketa = deliverySel.value === "packeta";
+      document.getElementById("packeta-block").style.display = isPacketa ? "block" : "none";
+      // pri Z-BOXe ani osobnom odbere netreba domácu adresu
+      document.getElementById("address-section").style.display = "none";
+      addressInputs.forEach((id) => document.getElementById(id).removeAttribute("required"));
+      renderSummary();
+    }
 
-    const form = document.getElementById("checkout-form");
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (readCart().length === 0) {
-        toast("Tvoj košík je prázdny.");
+    /* ── Prepínanie platby (PayPal) ────────────────────────────── */
+    let paypalRendered = false;
+    function updatePaymentUI() {
+      const isPaypal = paymentSel.value === "paypal";
+      document.getElementById("place-order-btn").style.display = isPaypal ? "none" : "flex";
+      document.getElementById("paypal-button-container").style.display = isPaypal ? "block" : "none";
+      if (isPaypal) renderPaypalButtons();
+    }
+
+    function loadPaypalSdk() {
+      return new Promise((resolve, reject) => {
+        if (window.paypal) return resolve();
+        if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID.indexOf("TODO") === 0) return reject("no-client-id");
+        const s = document.createElement("script");
+        s.src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(PAYPAL_CLIENT_ID) + "&currency=EUR";
+        s.onload = resolve;
+        s.onerror = () => reject("load-error");
+        document.head.appendChild(s);
+      });
+    }
+
+    async function renderPaypalButtons() {
+      const container = document.getElementById("paypal-button-container");
+      if (paypalRendered) return;
+      try {
+        await loadPaypalSdk();
+      } catch (e) {
+        container.innerHTML =
+          '<p class="summary-note">PayPal zatiaľ nie je nakonfigurovaný (chýba client-id). Doplň <code>PAYPAL_CLIENT_ID</code> v pokladna.html.</p>';
         return;
       }
+      paypalRendered = true;
+      window.paypal
+        .Buttons({
+          createOrder: (data, actions) => {
+            if (!validate()) return Promise.reject(new Error("neplatný formulár"));
+            return actions.order.create({
+              purchase_units: [
+                { amount: { value: grandTotal().toFixed(2), currency_code: "EUR" }, description: "Gazda3D objednávka" },
+              ],
+            });
+          },
+          onApprove: async (data, actions) => {
+            const details = await actions.order.capture();
+            document.getElementById("paypal-order-id").value = details.id;
+            await submitOrder(true);
+          },
+          onError: () => toast("Platba cez PayPal zlyhala. Skús to znova."),
+        })
+        .render("#paypal-button-container");
+    }
+
+    /* ── Validácia + odoslanie ─────────────────────────────────── */
+    function validate() {
+      if (readCart().length === 0) {
+        toast("Tvoj košík je prázdny.");
+        return false;
+      }
+      if (!form.reportValidity()) return false;
+      if (deliverySel.value === "packeta" && !document.getElementById("packeta-point").value) {
+        toast("Vyber si prosím Packeta Z-BOX.");
+        return false;
+      }
+      return true;
+    }
+
+    async function submitOrder(paidByPaypal) {
       document.getElementById("order-items").value = buildOrderText();
-      document.getElementById("order-total").value = formatEur(cartTotal());
+      document.getElementById("order-total").value = formatEur(grandTotal());
+      document.getElementById("shipping-fee").value = formatEur(shippingFee());
 
       const btn = document.getElementById("place-order-btn");
       btn.disabled = true;
       btn.style.opacity = "0.7";
-
       try {
         const res = await fetch(FORMSPREE_ENDPOINT, {
           method: "POST",
@@ -259,13 +362,18 @@
         });
         if (!res.ok) throw new Error("Formspree error");
         const meno = (document.getElementById("full-name").value || "").split(" ")[0] || "";
+        const payLine = paidByPaypal
+          ? "Platba bola prijatá cez PayPal. Ďakujeme!"
+          : paymentSel.value === "prevod"
+          ? "Pošleme ti údaje na bankový prevod."
+          : "Platba prebehne pri prevzatí.";
         clearCart();
         document.getElementById("checkout-root").innerHTML = `
           <div class="order-confirm">
             <div class="confirm-check">✓</div>
             <h1>Ďakujeme${meno ? ", " + meno : ""}!</h1>
-            <p>Tvoja objednávka bola odoslaná. Ozvem sa ti do 24 hodín na potvrdenie ceny a termínu.</p>
-            <p style="font-size:0.75rem;color:var(--muted2);margin-top:6px;">Platba prebehne až pri prevzatí (osobný odber v Rači).</p>
+            <p>Tvoja objednávka bola odoslaná. Ozvem sa ti do 24 hodín na potvrdenie termínu.</p>
+            <p style="font-size:0.75rem;color:var(--muted2);margin-top:6px;">${payLine}</p>
             <a href="index.html" class="btn-primary" style="margin-top:18px;">Späť na úvod</a>
           </div>`;
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -274,7 +382,43 @@
         btn.disabled = false;
         btn.style.opacity = "1";
       }
+    }
+
+    /* ── Packeta widget ────────────────────────────────────────── */
+    document.getElementById("packeta-pick-btn").addEventListener("click", () => {
+      if (!PACKETA_API_KEY || PACKETA_API_KEY.indexOf("TODO") === 0) {
+        toast("Packeta zatiaľ nie je nakonfigurovaná (chýba API kľúč).");
+        return;
+      }
+      if (!window.Packeta) {
+        toast("Packeta widget sa nepodarilo načítať.");
+        return;
+      }
+      window.Packeta.Widget.pick(
+        PACKETA_API_KEY,
+        (point) => {
+          if (!point) return;
+          document.getElementById("packeta-point").value = point.name + " (#" + point.id + ")";
+          document.getElementById("packeta-selected").textContent =
+            "Vybrané: " + (point.formatedValue || point.name);
+        },
+        { language: "sk", country: "sk", expanded: true }
+      );
     });
+
+    /* ── Init + udalosti ───────────────────────────────────────── */
+    deliverySel.addEventListener("change", updateDeliveryUI);
+    paymentSel.addEventListener("change", updatePaymentUI);
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (paymentSel.value === "paypal") return; // PayPal rieši vlastné tlačidlo
+      if (!validate()) return;
+      submitOrder(false);
+    });
+
+    updateDeliveryUI();
+    updatePaymentUI();
   </script>
 
 </body>
