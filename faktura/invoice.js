@@ -42,6 +42,16 @@ function formatNumber(num) {
     return num.toFixed(2).replace('.', ',');
 }
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // === ITEMS MANAGEMENT ===
 
 function addItem() {
@@ -616,36 +626,36 @@ function previewInvoice() {
             <div class="inv-header">
                 <div>
                     <div class="inv-title">${getInvoiceTitle(data.invoiceType)}</div>
-                    <div class="inv-number">\u010C\u00EDslo: ${data.invoiceNumber}</div>
+                    <div class="inv-number">\u010C\u00EDslo: ${escapeHtml(data.invoiceNumber)}</div>
                 </div>
             </div>
             <div class="inv-parties">
                 <div class="inv-party">
                     <h4>Dod\u00E1vate\u013E</h4>
-                    <p><strong>${data.seller.name}</strong></p>
-                    ${data.seller.street ? `<p>${data.seller.street}</p>` : ''}
-                    <p>${data.seller.zip} ${data.seller.city}</p>
-                    ${data.seller.ico ? `<p>I\u010CO: ${data.seller.ico}</p>` : ''}
-                    ${data.seller.dic ? `<p>DI\u010C: ${data.seller.dic}</p>` : ''}
-                    ${data.seller.icdph ? `<p>I\u010C DPH: ${data.seller.icdph}</p>` : ''}
+                    <p><strong>${escapeHtml(data.seller.name)}</strong></p>
+                    ${data.seller.street ? `<p>${escapeHtml(data.seller.street)}</p>` : ''}
+                    <p>${escapeHtml(data.seller.zip)} ${escapeHtml(data.seller.city)}</p>
+                    ${data.seller.ico ? `<p>I\u010CO: ${escapeHtml(data.seller.ico)}</p>` : ''}
+                    ${data.seller.dic ? `<p>DI\u010C: ${escapeHtml(data.seller.dic)}</p>` : ''}
+                    ${data.seller.icdph ? `<p>I\u010C DPH: ${escapeHtml(data.seller.icdph)}</p>` : ''}
                 </div>
                 <div class="inv-party">
                     <h4>Odberate\u013E</h4>
-                    <p><strong>${data.buyer.name}</strong></p>
-                    ${data.buyer.street ? `<p>${data.buyer.street}</p>` : ''}
-                    <p>${data.buyer.zip} ${data.buyer.city}</p>
-                    ${data.buyer.ico ? `<p>I\u010CO: ${data.buyer.ico}</p>` : ''}
-                    ${data.buyer.dic ? `<p>DI\u010C: ${data.buyer.dic}</p>` : ''}
-                    ${data.buyer.icdph ? `<p>I\u010C DPH: ${data.buyer.icdph}</p>` : ''}
+                    <p><strong>${escapeHtml(data.buyer.name)}</strong></p>
+                    ${data.buyer.street ? `<p>${escapeHtml(data.buyer.street)}</p>` : ''}
+                    <p>${escapeHtml(data.buyer.zip)} ${escapeHtml(data.buyer.city)}</p>
+                    ${data.buyer.ico ? `<p>I\u010CO: ${escapeHtml(data.buyer.ico)}</p>` : ''}
+                    ${data.buyer.dic ? `<p>DI\u010C: ${escapeHtml(data.buyer.dic)}</p>` : ''}
+                    ${data.buyer.icdph ? `<p>I\u010C DPH: ${escapeHtml(data.buyer.icdph)}</p>` : ''}
                 </div>
             </div>
             <div class="inv-details">
-                <div class="inv-detail-item"><span class="label">D\u00E1tum vystavenia</span><span class="value">${formatDate(data.issueDate)}</span></div>
-                <div class="inv-detail-item"><span class="label">D\u00E1tum dodania</span><span class="value">${formatDate(data.deliveryDate)}</span></div>
-                <div class="inv-detail-item"><span class="label">Splatnos\u0165</span><span class="value">${formatDate(data.dueDate)}</span></div>
-                <div class="inv-detail-item"><span class="label">Forma \u00FAhrady</span><span class="value">${data.paymentMethod}</span></div>
-                <div class="inv-detail-item"><span class="label">\u00DA\u010Det / IBAN</span><span class="value">${data.bankAccount}</span></div>
-                <div class="inv-detail-item"><span class="label">Variabiln\u00FD symbol</span><span class="value">${data.variableSymbol}</span></div>
+                <div class="inv-detail-item"><span class="label">D\u00E1tum vystavenia</span><span class="value">${escapeHtml(formatDate(data.issueDate))}</span></div>
+                <div class="inv-detail-item"><span class="label">D\u00E1tum dodania</span><span class="value">${escapeHtml(formatDate(data.deliveryDate))}</span></div>
+                <div class="inv-detail-item"><span class="label">Splatnos\u0165</span><span class="value">${escapeHtml(formatDate(data.dueDate))}</span></div>
+                <div class="inv-detail-item"><span class="label">Forma \u00FAhrady</span><span class="value">${escapeHtml(data.paymentMethod)}</span></div>
+                <div class="inv-detail-item"><span class="label">\u00DA\u010Det / IBAN</span><span class="value">${escapeHtml(data.bankAccount)}</span></div>
+                <div class="inv-detail-item"><span class="label">Variabiln\u00FD symbol</span><span class="value">${escapeHtml(data.variableSymbol)}</span></div>
             </div>
             <table>
                 <thead>
@@ -659,9 +669,9 @@ function previewInvoice() {
                     ${data.items.map((item, i) => `
                         <tr>
                             <td>${i + 1}</td>
-                            <td>${item.desc}</td>
+                            <td>${escapeHtml(item.desc)}</td>
                             <td>${formatNumber(item.qty)}</td>
-                            <td>${item.unit}</td>
+                            <td>${escapeHtml(item.unit)}</td>
                             <td>${formatNumber(item.priceWithoutVat)} ${data.currencySymbol}</td>
                             ${data.invoiceType !== 'bez_dph' ? `<td>${item.vatRate}%</td>` : ''}
                             <td>${formatNumber(item.total)} ${data.currencySymbol}</td>
@@ -677,7 +687,7 @@ function previewInvoice() {
                 ${discountAmount > 0 ? `<p>Z\u013Eava: -${formatNumber(discountAmount)} ${data.currencySymbol}</p>` : ''}
                 <p class="final">Celkom: ${formatNumber(totalWithVat)} ${data.currencySymbol}</p>
             </div>
-            ${data.invoiceNote ? `<p><strong>Pozn\u00E1mka:</strong> ${data.invoiceNote}</p>` : ''}
+            ${data.invoiceNote ? `<p><strong>Pozn\u00E1mka:</strong> ${escapeHtml(data.invoiceNote)}</p>` : ''}
         </div>
     `;
 
